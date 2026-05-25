@@ -2,12 +2,22 @@
 
 This directory contains ready-to-copy `place-files` config examples, sample payloads, and a resettable testbed.
 
-## Simplest example
+## Generate a simple preset
 
-`simplest/place-files.yml` copies one file to one output path.
+Use the CLI to create a ready-to-edit starter config in your project:
+
+```bash
+place-files init
+```
+
+This writes `place-files.yml`, `place-files.version`, and `place-files-payload/hello.txt`.
+
+## Simple example
+
+`simple/place-files.yml` shows the same one-file idea as a tracked example.
 
 ```text
-examples/simplest/
+examples/simple/
     place-files.yml
     place-files.version
     hello.txt
@@ -16,10 +26,10 @@ examples/simplest/
 Try it after building:
 
 ```bash
-node dist/cli.js --config examples/simplest/place-files.yml --dry-run
+node dist/cli.js --config examples/simple/place-files.yml --dry-run
 ```
 
-Remove `--dry-run` to create `examples/simplest/output/hello.txt`.
+Remove `--dry-run` to create `examples/simple/output/hello.txt`.
 
 ## Basic example
 

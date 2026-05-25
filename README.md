@@ -26,11 +26,15 @@ npm run build
 node dist/cli.js --config examples/basic/place-files.yml --dry-run
 ```
 
-After installing the package, run it like this:
+After installing the package, generate a starter preset and run it like this:
 
 ```bash
+place-files init
 place-files --config ./place-files.yml
 ```
+
+`place-files init` creates a simple config, a version file, and one payload file.
+Use `place-files init --force` to overwrite an existing generated preset.
 
 ## Config files
 
@@ -40,7 +44,7 @@ Default config file candidates are searched in this order:
 - `place-files.yaml`
 
 Example configs, sample payloads, and a resettable testbed are collected in [[examples/README.md]].
-Start with [[examples/simplest/place-files.yml]] or [[examples/basic/place-files.yml]], then use [[examples/testbed/README.md]] for a realistic backup/version test.
+Start with [[examples/simple/place-files.yml]] or [[examples/basic/place-files.yml]], then use [[examples/testbed/README.md]] for a realistic backup/version test.
 
 ```yaml
 base_dir: .
@@ -90,12 +94,19 @@ The example above does three things:
 
 ```bash
 place-files [options]
+place-files init [simple] [options]
 ```
+
+Commands:
+
+- `init`: generate a simple preset config and payload in the current directory
+
+Options:
 
 - `-c, --config <path>`: specify the config YAML path
 - `--cwd <path>`: specify the base directory used when searching for default configs
 - `--dry-run`: print the actions without changing files
-- `--force`: run even when the version is unchanged
+- `--force`: run even when the version is unchanged; with `init`, overwrite preset files
 - `-v, --verbose`: print verbose logs
 - `-h, --help`: print help
 - `--version`: print the version
@@ -142,10 +153,11 @@ place-files/
         index.ts
         path-utils.ts
         place.ts
+        presets.ts
         types.ts
     examples/
         README.md
-        simplest/
+        simple/
             place-files.yml
             place-files.version
             hello.txt

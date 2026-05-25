@@ -2,10 +2,17 @@
 import { resolve } from 'node:path';
 import { findConfigPath } from './config.js';
 import { placeFiles } from './place.js';
+import { writeSimplePreset } from './presets.js';
 
 const VERSION = '0.1.0';
 
+type CliCommand = 'apply' | 'init';
+
+type PresetName = 'simple';
+
 interface CliArgs {
+  command: CliCommand;
+  preset: PresetName;
   config?: string;
   cwd: string;
   dryRun: boolean;
@@ -28,6 +35,23 @@ async function main(argv: string[]): Promise<void> {
     return;
   }
 
+  if (args.command === 'init') {
+    if (args.config) {
+      throw new Error('--config is not supported with init.');
+    }
+    const result = writeSimplePreset({
+      cwd: args.cwd,
+      dryRun: args.dryRun,
+      force: args.force,
+    });
+    const verb = result.dryRun ? 'would write' : 'wrote';
+    console.log(`[place-files] ${verb} ${args.preset} preset:`);
+    for (const file of result.files) {
+      console.log(`  [${file.action}] ${file.relativePath}`);
+    }
+    return;
+  }
+
   const configPath = findConfigPath(args.cwd, args.config);
   placeFiles({
     configPath,
@@ -39,6 +63,8 @@ async function main(argv: string[]): Promise<void> {
 
 function parseArgs(args: string[]): CliArgs {
   const parsed: CliArgs = {
+    command: 'apply',
+    preset: 'simple',
     cwd: process.cwd(),
     dryRun: false,
     force: false,
@@ -47,7 +73,16 @@ function parseArgs(args: string[]): CliArgs {
     version: false,
   };
 
-  for (let index = 0; index < args.length; index += 1) {
+  let startIndex = 0;
+  if (args[0] && !args[0].startsWith('-')) {
+    if (args[0] !== 'init') {
+      throw new Error(`Unknown command: ${args[0]}`);
+    }
+    parsed.command = 'init';
+    startIndex = 1;
+  }
+
+  for (let index = startIndex; index < args.length; index += 1) {
     const arg = args[index];
 
     switch (arg) {
@@ -84,6 +119,13 @@ function parseArgs(args: string[]): CliArgs {
           parsed.cwd = resolve(arg.slice('--cwd='.length));
           break;
         }
+        if (!arg.startsWith('-') && parsed.command === 'init') {
+          if (arg !== 'simple') {
+            throw new Error(`Unknown preset: ${arg}`);
+          }
+          parsed.preset = arg;
+          break;
+        }
         throw new Error(`Unknown option: ${arg}`);
     }
   }
@@ -106,18 +148,25 @@ Places files, directories, and glob matches from a config file into target paths
 
 Usage:
   place-files [options]
+  place-files init [simple] [options]
+
+Commands:
+  init                 Generate a simple preset config and payload in the current directory.
 
 Options:
   -c, --config <path>  Specify the config YAML path.
       --cwd <path>     Base directory used when searching for a default config. Default: current directory
       --dry-run        Print the actions without changing files.
-      --force          Run even when the version is unchanged.
+      --force          Apply: run even when the version is unchanged. Init: overwrite preset files.
   -v, --verbose        Print verbose logs.
   -h, --help           Print help.
       --version        Print the version.
 
 Default config file candidates:
   place-files.yml, place-files.yaml
+
+Agent note:
+  When editing files that are placed by this config, also update the configured version_file so normal runs apply the change.
 `);
 }
 
