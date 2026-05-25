@@ -1,0 +1,36 @@
+# Basic place-files example
+# This config shows exactly what place-files does:
+# 1. Place one file at a specific target path.
+# 2. Place every JSON file matched by a glob into a target directory.
+# 3. Place a whole directory tree into a target directory.
+
+base_dir: .
+
+# The source bundle version. If this value changes, place-files runs again.
+version_file: place-files.version
+
+# The last version placed on this machine. This is local state, not source content.
+applied_version_file: .place-files.applied.version
+
+entries:
+  # Single file: payload/files/project-notes.md -> output/project-notes.md
+  - src: payload/files/project-notes.md
+    dst: output/project-notes.md
+
+  # Glob: payload/config/*.json -> output/config/<same file name>
+  - src: payload/config/*.json
+    dst: output/config
+
+  # Directory: payload/assets -> output/assets
+  - src: payload/assets
+    dst: output/assets
+
+backup:
+  enabled: true
+  # If omitted, backups are created next to the target files.
+  # directory: .place-files-backups
+  include_previous_version: true
+
+behavior:
+  place_when_version_missing: true
+  fail_on_missing_source: false

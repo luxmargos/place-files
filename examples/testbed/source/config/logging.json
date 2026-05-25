@@ -1,0 +1,5 @@
+{
+  "level": "info",
+  "format": "pretty",
+  "destination": "console"
+}

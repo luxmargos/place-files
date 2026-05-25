@@ -1,0 +1,2 @@
+This directory is copied as a full tree.
+Use it for templates, assets, snippets, or any reusable files.

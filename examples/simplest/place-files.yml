@@ -1,0 +1,7 @@
+base_dir: .
+version_file: place-files.version
+applied_version_file: .place-files.applied.version
+
+entries:
+  - src: hello.txt
+    dst: output/hello.txt

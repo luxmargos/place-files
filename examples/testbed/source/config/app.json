@@ -1,0 +1,8 @@
+{
+  "appName": "place-files-demo",
+  "theme": "system",
+  "features": {
+    "welcomeBanner": true,
+    "localHints": true
+  }
+}
