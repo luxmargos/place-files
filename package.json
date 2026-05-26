@@ -69,5 +69,9 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "author": {
+    "name": "luxmargos",
+    "email": "owlflyx12@gmail.com"
   }
 }
