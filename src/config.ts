@@ -8,6 +8,8 @@ export const DEFAULT_CONFIG_NAMES = [
   'place-files.yaml',
 ] as const;
 
+export const DEFAULT_BACKUP_FORMAT = '{basename}.{datetime}_{random}{previous_version_suffix}.backup';
+
 export function findConfigPath(cwd: string, explicitPath?: string): string {
   if (explicitPath) {
     const configPath = resolve(cwd, explicitPath);
@@ -65,6 +67,7 @@ export function loadConfig(configPath: string): NormalizedPlaceFilesConfig {
     backup: {
       enabled: raw.backup?.enabled ?? true,
       directory: raw.backup?.directory,
+      format: raw.backup?.format ?? raw.backup?.nameFormat ?? raw.backup?.name_format ?? DEFAULT_BACKUP_FORMAT,
       includePreviousVersion: raw.backup?.includePreviousVersion
         ?? raw.backup?.include_previous_version
         ?? true,

@@ -104,8 +104,12 @@ This example:
   - Whether to create a backup when the target already exists.
 - `backup.directory`
   - Directory used to collect backup files.
+- `backup.format`
+  - Format for backup file or folder paths. Defaults to `{basename}.{datetime}_{random}{previous_version_suffix}.backup`.
+  - Supports placeholders: `{basename}`, `{name}`, `{ext}`, `{datetime}`, `{random}`, `{previous_version}`, `{previous_version_suffix}`, `{version}`, `{version_suffix}`, `{target_dir}`, and `{target_path}`.
+  - When `backup.directory` is set, the format is relative to that directory; otherwise, it is relative to the target file's directory.
 - `backup.include_previous_version`
-  - Whether to include the previously applied version in backup file names.
+  - Whether to include the previously applied version in default backup file names and `{previous_version_suffix}` / `{version_suffix}`.
 - `behavior.place_when_version_missing`
   - Whether to place files when `version_file` is missing.
 - `behavior.fail_on_missing_source`

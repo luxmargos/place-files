@@ -6,6 +6,9 @@ export interface FileEntry {
 export interface BackupConfig {
   enabled?: boolean;
   directory?: string;
+  format?: string;
+  nameFormat?: string;
+  name_format?: string;
   includePreviousVersion?: boolean;
   include_previous_version?: boolean;
 }
@@ -32,6 +35,7 @@ export interface PlaceFilesConfigFile {
 export interface NormalizedBackupConfig {
   enabled: boolean;
   directory?: string;
+  format: string;
   includePreviousVersion: boolean;
 }
 

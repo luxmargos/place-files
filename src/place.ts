@@ -1,5 +1,5 @@
 import { copyFileSync, cpSync, existsSync, globSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, extname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { loadConfig } from './config.js';
 import { isGlobPattern, resolveFromBase } from './path-utils.js';
 import type { NormalizedPlaceFilesConfig, PlaceFilesOptions, PlaceFilesResult } from './types.js';
@@ -119,16 +119,59 @@ function copyEntry(srcPath: string, dstPath: string): void {
 }
 
 function makeBackupPath(config: NormalizedPlaceFilesConfig, targetPath: string, previousVersion: string | null): string {
+  const targetBasename = basename(targetPath);
+  const targetExt = extname(targetBasename);
+  const targetName = targetExt ? targetBasename.slice(0, -targetExt.length) : targetBasename;
+  const targetRelativePath = relative(config.baseDir, targetPath);
+  const targetRelativeDir = dirname(targetRelativePath);
   const datetime = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
   const randomId = Math.random().toString(36).slice(2, 8);
-  const versionPart = config.backup.includePreviousVersion && previousVersion ? `_version-${previousVersion}` : '';
-  const backupName = `${basename(targetPath)}.${datetime}_${randomId}${versionPart}.backup`;
+  const previousVersionSuffix = config.backup.includePreviousVersion && previousVersion ? `_version-${previousVersion}` : '';
+  const backupFormat = renderBackupFormat(config.backup.format, {
+    basename: targetBasename,
+    datetime,
+    ext: targetExt,
+    name: targetName,
+    previous_version: previousVersion ?? '',
+    previous_version_suffix: previousVersionSuffix,
+    random: randomId,
+    target_dir: targetRelativeDir === '.' ? '' : targetRelativeDir,
+    target_path: targetRelativePath,
+    version: previousVersion ?? '',
+    version_suffix: previousVersionSuffix,
+  });
+  const backupRoot = config.backup.directory
+    ? resolveFromBase(config.baseDir, config.backup.directory)
+    : dirname(targetPath);
 
-  if (config.backup.directory) {
-    return join(resolveFromBase(config.baseDir, config.backup.directory), backupName);
+  return resolveBackupPath(backupRoot, backupFormat);
+}
+
+function renderBackupFormat(format: string, values: Record<string, string>): string {
+  return format.replace(/\{([a-zA-Z0-9_]+)\}/g, (placeholder, name: string) => {
+    const value = values[name];
+    if (value === undefined) {
+      throw new Error(`Unknown backup.format placeholder: ${placeholder}`);
+    }
+    return value;
+  });
+}
+
+function resolveBackupPath(root: string, pathFormat: string): string {
+  if (!pathFormat) {
+    throw new Error('backup.format must not be empty.');
+  }
+  if (isAbsolute(pathFormat)) {
+    throw new Error('backup.format must be a relative path format.');
   }
 
-  return `${targetPath}.${datetime}_${randomId}${versionPart}.backup`;
+  const backupPath = resolve(root, pathFormat);
+  const relativeBackupPath = relative(root, backupPath);
+  if (relativeBackupPath === '' || relativeBackupPath === '..' || relativeBackupPath.startsWith(`..${sep}`) || isAbsolute(relativeBackupPath)) {
+    throw new Error('backup.format must resolve inside the backup directory.');
+  }
+
+  return backupPath;
 }
 
 function matchGlob(pattern: string, cwd: string): string[] {

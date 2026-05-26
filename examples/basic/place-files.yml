@@ -29,6 +29,8 @@ backup:
   enabled: true
   # If omitted, backups are created next to the target files.
   # directory: .place-files-backups
+  # Customize backup names/paths with placeholders like {target_path}, {datetime}, and {random}.
+  # format: "{target_path}.{datetime}_{random}{previous_version_suffix}.backup"
   include_previous_version: true
 
 behavior:
