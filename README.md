@@ -1,50 +1,71 @@
 # place-files
 
-## Description
+`place-files` is an npm CLI and library for copying prepared files into configured target paths.
+It is designed for projects that need to place files, directories, or glob matches from a YAML config while keeping local backups and applying changes only when a source version changes.
 
-### For users
+## Features
 
-`place-files` puts files, directories, and glob matches into the paths you choose. It is useful for placing a prepared set of project files into the right locations, with backups and version checks built in.
+- Place files from a simple YAML config.
+- Support individual files, directories, and glob patterns.
+- Skip repeated runs when the configured version has already been applied.
+- Back up existing target files before overwriting them.
+- Customize target paths, backup behavior, and missing-file behavior.
+- Use as either a CLI or a TypeScript/JavaScript library.
 
-### For developers
+## Install
 
-`place-files` is a TypeScript-based npm CLI package and library for config-driven file placement. It provides config discovery, YAML config normalization, version-based apply checks, backup handling, and dry-run support.
-
-## Goals
-
-- Place files from a simple YAML config
-- Support files, directories, and glob patterns
-- Run only when changes are detected based on a version file
-- Back up existing target files before overwriting them
-- Customize user-specific target paths and backup policies
-
-## Usage example
+Install in your project:
 
 ```bash
-npm install
-npm run build
-node dist/cli.js --config examples/basic/place-files.yml --dry-run
+npm install @luxmargos/place-files
 ```
 
-After installing the package, generate a starter preset and run it like this:
+Or install globally for direct CLI usage:
+
+```bash
+npm install -g @luxmargos/place-files
+```
+
+## Quick start
+
+Create a starter config and payload:
+
+```bash
+npx place-files init
+```
+
+Apply files from the generated config:
+
+```bash
+npx place-files --config ./place-files.yml
+```
+
+If installed globally, you can run the binary directly:
 
 ```bash
 place-files init
 place-files --config ./place-files.yml
 ```
 
-`place-files init` creates a simple config, a version file, and one payload file.
+`place-files init` creates:
+
+- `place-files.yml`
+- `place-files.version`
+- `place-files-payload/hello.txt`
+
 Use `place-files init --force` to overwrite an existing generated preset.
 
 ## Config files
 
-Default config file candidates are searched in this order:
+By default, `place-files` searches for a config file in this order:
 
 - `place-files.yml`
 - `place-files.yaml`
 
-Example configs, sample payloads, and a resettable testbed are collected in [[examples/README.md]].
-Start with [[examples/simple/place-files.yml]] or [[examples/basic/place-files.yml]], then use [[examples/testbed/README.md]] for a realistic backup/version test.
+Example configs and sample payloads are available in [examples/README.md](examples/README.md).
+Start with [examples/simple/place-files.yml](examples/simple/place-files.yml) or [examples/basic/place-files.yml](examples/basic/place-files.yml).
+
+## Config example
 
 ```yaml
 base_dir: .
@@ -60,37 +81,37 @@ entries:
     dst: output/assets
 ```
 
-The example above does three things:
+This example:
 
 - Places one file at an exact target path.
 - Places all matched JSON files into a target directory.
 - Places a whole directory tree into a target directory.
 
-## Key options
+## Key config options
 
 - `base_dir`
-    - The base path for all relative paths.
-    - If omitted, the directory containing the config file is used.
+  - Base path for all relative paths.
+  - If omitted, the directory containing the config file is used.
 - `version_file`
-    - A file that represents the version of the source file bundle.
-    - Any value can be used, such as a version ID, date, or release string.
+  - File containing the source bundle version.
+  - Any value can be used, such as a version ID, date, or release string.
 - `applied_version_file`
-    - A local file that records the last placed version.
+  - Local file that records the last applied version.
 - `entries`
-    - A list of files, directories, or glob patterns to place from `src` to `dst`.
-    - If `src` is a glob pattern, `dst` is treated as a directory.
+  - List of files, directories, or glob patterns to place from `src` to `dst`.
+  - If `src` is a glob pattern, `dst` is treated as a directory.
 - `backup.enabled`
-    - Whether to create a backup when the target already exists.
+  - Whether to create a backup when the target already exists.
 - `backup.directory`
-    - Used to collect backup files in a separate directory.
+  - Directory used to collect backup files.
 - `backup.include_previous_version`
-    - Determines whether to include the previously applied version in backup file names.
+  - Whether to include the previously applied version in backup file names.
 - `behavior.place_when_version_missing`
-    - Determines whether to place files even when `version_file` is missing.
+  - Whether to place files when `version_file` is missing.
 - `behavior.fail_on_missing_source`
-    - Determines whether missing sources should be treated as failures.
+  - Whether missing sources should fail the run.
 
-## CLI options
+## CLI
 
 ```bash
 place-files [options]
@@ -99,19 +120,54 @@ place-files init [simple] [options]
 
 Commands:
 
-- `init`: generate a simple preset config and payload in the current directory
+- `init`: generate a simple preset config and payload in the current directory.
 
 Options:
 
-- `-c, --config <path>`: specify the config YAML path
-- `--cwd <path>`: specify the base directory used when searching for default configs
-- `--dry-run`: print the actions without changing files
-- `--force`: run even when the version is unchanged; with `init`, overwrite preset files
-- `-v, --verbose`: print verbose logs
-- `-h, --help`: print help
-- `--version`: print the version
+- `-c, --config <path>`: specify the config YAML path.
+- `--cwd <path>`: specify the base directory used when searching for default configs.
+- `--dry-run`: print the planned actions without changing files.
+- `--force`: run even when the version is unchanged; with `init`, overwrite preset files.
+- `-v, --verbose`: print verbose logs.
+- `-h, --help`: print help.
+- `--version`: print the package version.
 
-## Realistic testbed
+## Library API
+
+```ts
+import { placeFiles } from '@luxmargos/place-files';
+
+await placeFiles({
+  configPath: './place-files.yml',
+  dryRun: true,
+});
+```
+
+## Development
+
+This section is for contributors working from the source repository.
+
+Install dependencies and build:
+
+```bash
+npm install
+npm run build
+```
+
+Run type checks and tests:
+
+```bash
+npm run typecheck
+npm test
+```
+
+Run a local development example:
+
+```bash
+node dist/cli.js --config examples/basic/place-files.yml --dry-run
+```
+
+### Testbed
 
 Use the testbed to exercise real copy, backup, no-op, version-up, and force-run behavior:
 
@@ -124,57 +180,10 @@ npm run testbed:run
 npm run testbed:force
 ```
 
-To run the automated version-up regression check:
+To run only the automated version-up regression check:
 
 ```bash
 npm run test:version-up
 ```
 
 The generated target directory is `examples/testbed/workdir/` and is ignored by Git.
-
-## Library API
-
-```ts
-import { placeFiles } from 'place-files';
-
-placeFiles({
-  configPath: './place-files.yml',
-  dryRun: true,
-});
-```
-
-## Project structure
-
-```text
-place-files/
-    src/
-        cli.ts
-        config.ts
-        index.ts
-        path-utils.ts
-        place.ts
-        presets.ts
-        types.ts
-    examples/
-        README.md
-        simple/
-            place-files.yml
-            place-files.version
-            hello.txt
-        basic/
-            place-files.yml
-            place-files.version
-            payload/
-                files/project-notes.md
-                config/app.json
-                config/logging.json
-                assets/banner.txt
-                assets/help.txt
-        testbed/
-            README.md
-            place-files.yml
-            source/
-            workdir/    # generated and ignored
-    package.json
-    tsconfig.json
-```

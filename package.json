@@ -1,7 +1,23 @@
 {
-  "name": "place-files",
+  "name": "@luxmargos/place-files",
   "version": "0.1.0",
   "description": "Place files from a YAML config into target paths with version checks and backups.",
+  "keywords": [
+    "file-placement",
+    "cli",
+    "yaml",
+    "backup",
+    "config",
+    "typescript"
+  ],
+  "homepage": "https://gitlab.owlfamily.net/tooling/file-hydrator#readme",
+  "bugs": {
+    "url": "https://gitlab.owlfamily.net/tooling/file-hydrator/-/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.owlfamily.net/tooling/file-hydrator.git"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,12 +28,17 @@
     }
   },
   "bin": {
-    "place-files": "./dist/cli.js"
+    "place-files": "dist/cli.js"
   },
   "files": [
     "dist",
     "README.md",
-    "examples"
+    "examples/README.md",
+    "examples/simple",
+    "examples/basic",
+    "examples/testbed/README.md",
+    "examples/testbed/place-files.yml",
+    "examples/testbed/source"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -45,5 +66,8 @@
   "engines": {
     "node": ">=22.17.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
 }
