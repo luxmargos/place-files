@@ -10,13 +10,13 @@
     "config",
     "typescript"
   ],
-  "homepage": "https://gitlab.owlfamily.net/tooling/file-hydrator#readme",
+  "homepage": "https://gitlab.owlfamily.net/tooling/place-files#readme",
   "bugs": {
-    "url": "https://gitlab.owlfamily.net/tooling/file-hydrator/-/issues"
+    "url": "https://gitlab.owlfamily.net/tooling/place-files/-/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.owlfamily.net/tooling/file-hydrator.git"
+    "url": "git+https://gitlab.owlfamily.net/tooling/place-files.git"
   },
   "type": "module",
   "main": "./dist/index.js",
