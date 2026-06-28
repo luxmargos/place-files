@@ -4,7 +4,7 @@ import { findConfigPath } from './config.js';
 import { placeFiles } from './place.js';
 import { writeSimplePreset } from './presets.js';
 
-const VERSION = '0.1.1';
+const VERSION = '0.2.0';
 
 type CliCommand = 'apply' | 'init';
 
