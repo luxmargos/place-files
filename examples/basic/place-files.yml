@@ -17,7 +17,7 @@ entries:
   - src: payload/files/project-notes.md
     dst: output/project-notes.md
 
-  # Glob: payload/config/*.json -> output/config/<same file name>
+  # Glob: payload/config/*.json -> output/config/payload/config/<same file name>
   - src: payload/config/*.json
     dst: output/config
 
@@ -36,3 +36,4 @@ backup:
 behavior:
   place_when_version_missing: true
   fail_on_missing_source: false
+  preserve_glob_paths: true

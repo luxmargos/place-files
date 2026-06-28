@@ -28,18 +28,23 @@ export function placeFiles(options: PlaceFilesOptions): PlaceFilesResult {
 
   for (const entry of config.entries) {
     if (isGlobPattern(entry.src)) {
-      const matched = matchGlob(entry.src, config.baseDir);
-      if (matched.length === 0) {
+      const placements = getGlobPlacements(config, entry.src, entry.dst);
+      if (placements.matchedCount === 0) {
         handleMissingSource(`no matches: ${entry.src}`, config);
         skipped += 1;
         continue;
       }
 
-      const dstDir = resolveFromBase(config.baseDir, entry.dst);
-      for (const rel of matched) {
-        const srcPath = resolve(config.baseDir, rel);
-        const dstPath = resolve(dstDir, basename(rel));
-        const result = copyOne(config, srcPath, dstPath, rel, relative(config.baseDir, dstPath), appliedVersion, options.dryRun ?? false);
+      for (const placement of placements.items) {
+        const result = copyOne(
+          config,
+          placement.srcPath,
+          placement.dstPath,
+          placement.srcLabel,
+          placement.dstLabel,
+          appliedVersion,
+          options.dryRun ?? false,
+        );
         copied += result.copied;
         backedUp += result.backedUp;
       }
@@ -73,12 +78,88 @@ export function placeFiles(options: PlaceFilesOptions): PlaceFilesResult {
 function checkAllDestinationsExist(config: NormalizedPlaceFilesConfig, logger: ReturnType<typeof createLogger>): boolean {
   return config.entries.every(({ src, dst }) => {
     if (isGlobPattern(src)) {
-      const matched = matchGlob(src, config.baseDir);
-      logger.verbose(`[place-files] glob ${src}: ${matched.length} match(es)`);
-      return matched.length > 0 && matched.every((entry) => existsSync(resolve(resolveFromBase(config.baseDir, dst), basename(entry))));
+      const placements = getGlobPlacements(config, src, dst);
+      logger.verbose(`[place-files] glob ${src}: ${placements.matchedCount} match(es)`);
+      return placements.matchedCount > 0 && placements.items.every((entry) => existsSync(entry.dstPath));
     }
     return existsSync(resolveFromBase(config.baseDir, dst));
   });
+}
+
+interface GlobPlacement {
+  srcPath: string;
+  dstPath: string;
+  srcLabel: string;
+  dstLabel: string;
+}
+
+function getGlobPlacements(
+  config: NormalizedPlaceFilesConfig,
+  srcPattern: string,
+  dst: string,
+): { matchedCount: number; items: GlobPlacement[] } {
+  const matched = matchGlob(srcPattern, config.baseDir);
+  const dstDir = resolveFromBase(config.baseDir, dst);
+  const sourceEntries = matched.map((entry) => {
+    const srcPath = resolve(config.baseDir, entry);
+    return {
+      srcPath,
+      srcLabel: relative(config.baseDir, srcPath),
+      isDirectory: statSync(srcPath).isDirectory(),
+    };
+  });
+  const entries = config.behavior.preserveGlobPaths ? pruneCoveredGlobEntries(sourceEntries) : sourceEntries;
+
+  return {
+    matchedCount: matched.length,
+    items: entries.map((entry) => {
+      const dstPath = config.behavior.preserveGlobPaths
+        ? resolve(dstDir, entry.srcLabel)
+        : resolve(dstDir, basename(entry.srcPath));
+      return {
+        srcPath: entry.srcPath,
+        dstPath,
+        srcLabel: entry.srcLabel,
+        dstLabel: relative(config.baseDir, dstPath),
+      };
+    }),
+  };
+}
+
+function pruneCoveredGlobEntries(
+  entries: Array<{ srcPath: string; srcLabel: string; isDirectory: boolean }>,
+): Array<{ srcPath: string; srcLabel: string; isDirectory: boolean }> {
+  const sorted = [...entries].sort((left, right) => {
+    const depthDelta = pathDepth(left.srcLabel) - pathDepth(right.srcLabel);
+    return depthDelta === 0 ? left.srcLabel.localeCompare(right.srcLabel) : depthDelta;
+  });
+  const keptDirectories: string[] = [];
+  const kept: Array<{ srcPath: string; srcLabel: string; isDirectory: boolean }> = [];
+
+  for (const entry of sorted) {
+    if (keptDirectories.some((directory) => isInsidePath(directory, entry.srcPath))) {
+      continue;
+    }
+
+    kept.push(entry);
+    if (entry.isDirectory) {
+      keptDirectories.push(entry.srcPath);
+    }
+  }
+
+  return kept;
+}
+
+function pathDepth(path: string): number {
+  return path.split(sep).length;
+}
+
+function isInsidePath(parentPath: string, childPath: string): boolean {
+  const childRelativePath = relative(parentPath, childPath);
+  return childRelativePath !== ''
+    && childRelativePath !== '..'
+    && !childRelativePath.startsWith(`..${sep}`)
+    && !isAbsolute(childRelativePath);
 }
 
 function copyOne(

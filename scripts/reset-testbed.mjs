@@ -18,7 +18,7 @@ write('docs/project-notes.md', `# Local project notes
 
 This stale local file should be backed up before the source bundle is placed.
 `);
-write('config/app.json', `{
+write('config/source/config/app.json', `{
   "appName": "old-local-demo",
   "theme": "light",
   "features": {

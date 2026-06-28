@@ -48,4 +48,5 @@ Expected behavior:
 - Config: `examples/testbed/place-files.yml`
 - Source bundle: `examples/testbed/source/`
 - Generated target directory: `examples/testbed/workdir/`
+- Preserved glob output: `examples/testbed/workdir/config/source/config/`
 - Backup directory: `examples/testbed/workdir/.place-files-backups/`

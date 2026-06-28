@@ -79,12 +79,15 @@ entries:
     dst: output/config
   - src: payload/assets
     dst: output/assets
+
+behavior:
+  preserve_glob_paths: true
 ```
 
 This example:
 
 - Places one file at an exact target path.
-- Places all matched JSON files into a target directory.
+- Places all matched JSON files into a target directory while preserving their paths from `base_dir`.
 - Places a whole directory tree into a target directory.
 
 ## Key config options
@@ -100,6 +103,7 @@ This example:
 - `entries`
   - List of files, directories, or glob patterns to place from `src` to `dst`.
   - If `src` is a glob pattern, `dst` is treated as a directory.
+  - By default, glob matches preserve their paths relative to `base_dir`. For example, `payload/config/*.json` copied to `output/config` places `payload/config/app.json` at `output/config/payload/config/app.json`.
 - `backup.enabled`
   - Whether to create a backup when the target already exists.
 - `backup.directory`
@@ -114,6 +118,9 @@ This example:
   - Whether to place files when `version_file` is missing.
 - `behavior.fail_on_missing_source`
   - Whether missing sources should fail the run.
+- `behavior.preserve_glob_paths`
+  - Whether glob matches preserve their paths relative to `base_dir`. Defaults to `true`.
+  - Set to `false` to flatten matched files into the destination directory.
 
 ## CLI
 

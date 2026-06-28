@@ -18,6 +18,8 @@ export interface BehaviorConfig {
   place_when_version_missing?: boolean;
   failOnMissingSource?: boolean;
   fail_on_missing_source?: boolean;
+  preserveGlobPaths?: boolean;
+  preserve_glob_paths?: boolean;
 }
 
 export interface PlaceFilesConfigFile {
@@ -42,6 +44,7 @@ export interface NormalizedBackupConfig {
 export interface NormalizedBehaviorConfig {
   placeWhenVersionMissing: boolean;
   failOnMissingSource: boolean;
+  preserveGlobPaths: boolean;
 }
 
 export interface NormalizedPlaceFilesConfig {

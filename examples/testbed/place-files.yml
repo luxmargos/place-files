@@ -12,7 +12,8 @@ entries:
   - src: source/files/project-notes.md
     dst: workdir/docs/project-notes.md
 
-  # Glob placement. Existing app.json should be backed up; logging.json should be added.
+  # Glob placement preserves source/config under workdir/config.
+  # Existing app.json should be backed up; logging.json should be added.
   - src: source/config/*.json
     dst: workdir/config
 
@@ -28,3 +29,4 @@ backup:
 behavior:
   place_when_version_missing: true
   fail_on_missing_source: true
+  preserve_glob_paths: true

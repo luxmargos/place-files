@@ -77,6 +77,7 @@ export function loadConfig(configPath: string): NormalizedPlaceFilesConfig {
         ?? raw.behavior?.place_when_version_missing
         ?? true,
       failOnMissingSource: raw.behavior?.failOnMissingSource ?? raw.behavior?.fail_on_missing_source ?? false,
+      preserveGlobPaths: raw.behavior?.preserveGlobPaths ?? raw.behavior?.preserve_glob_paths ?? true,
     },
   };
 }

@@ -56,8 +56,10 @@ examples/basic/
 With `base_dir: .` inside `examples/basic/place-files.yml`:
 
 - `payload/files/project-notes.md` is placed at `output/project-notes.md`.
-- `payload/config/*.json` is placed into `output/config/` while preserving each matched file name.
+- `payload/config/*.json` is placed into `output/config/payload/config/` because this example sets `behavior.preserve_glob_paths: true`.
 - `payload/assets` is placed at `output/assets` as a directory tree.
+
+Glob matches preserve their paths relative to `base_dir` by default. For example, `payload/assets/**` copied to `output` places `payload/assets/banner.txt` at `output/payload/assets/banner.txt`.
 
 ## Try the basic example
 
