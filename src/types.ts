@@ -70,3 +70,17 @@ export interface PlaceFilesResult {
   backedUp: number;
   skipped: number;
 }
+
+export interface StampVersionOptions {
+  configPath: string;
+  dryRun?: boolean;
+  verbose?: boolean;
+}
+
+export interface StampVersionResult {
+  changed: boolean;
+  hash: string;
+  previousHash: string | null;
+  fileCount: number;
+  versionFilePath: string;
+}

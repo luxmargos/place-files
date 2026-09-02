@@ -3,10 +3,11 @@ import { resolve } from 'node:path';
 import { findConfigPath } from './config.js';
 import { placeFiles } from './place.js';
 import { writeSimplePreset } from './presets.js';
+import { stampVersion } from './stamp.js';
 
 const VERSION = '0.2.0';
 
-type CliCommand = 'apply' | 'init';
+type CliCommand = 'apply' | 'init' | 'stamp';
 
 type PresetName = 'simple';
 
@@ -53,6 +54,24 @@ async function main(argv: string[]): Promise<void> {
   }
 
   const configPath = findConfigPath(args.cwd, args.config);
+
+  if (args.command === 'stamp') {
+    const result = stampVersion({
+      configPath,
+      dryRun: args.dryRun,
+      verbose: args.verbose,
+    });
+    console.log(`[place-files] hashed ${result.fileCount} source file(s): ${result.hash}`);
+    if (!result.changed) {
+      console.log('[place-files] version file is up to date.');
+      return;
+    }
+    const previous = result.previousHash ?? 'none';
+    const verb = args.dryRun ? 'would update' : 'updated';
+    console.log(`[place-files] ${verb} ${result.versionFilePath} (${previous} -> ${result.hash})`);
+    return;
+  }
+
   placeFiles({
     configPath,
     dryRun: args.dryRun,
@@ -75,10 +94,10 @@ function parseArgs(args: string[]): CliArgs {
 
   let startIndex = 0;
   if (args[0] && !args[0].startsWith('-')) {
-    if (args[0] !== 'init') {
+    if (args[0] !== 'init' && args[0] !== 'stamp') {
       throw new Error(`Unknown command: ${args[0]}`);
     }
-    parsed.command = 'init';
+    parsed.command = args[0];
     startIndex = 1;
   }
 
@@ -149,9 +168,11 @@ Places files, directories, and glob matches from a config file into target paths
 Usage:
   place-files [options]
   place-files init [simple] [options]
+  place-files stamp [options]
 
 Commands:
   init                 Generate a simple preset config and payload in the current directory.
+  stamp                Hash all configured sources into a single hash and update version_file when it differs.
 
 Options:
   -c, --config <path>  Specify the config YAML path.
@@ -166,7 +187,8 @@ Default config file candidates:
   place-files.yml, place-files.yaml
 
 Agent note:
-  When editing files that are placed by this config, also update the configured version_file so normal runs apply the change.
+  When editing files that are placed by this config, run 'place-files stamp' (or manually update the
+  configured version_file) so normal runs apply the change.
 `);
 }
 
