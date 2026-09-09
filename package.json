@@ -10,13 +10,13 @@
     "config",
     "typescript"
   ],
-  "homepage": "https://gitlab.owlfamily.net/tooling/place-files#readme",
+  "homepage": "https://github.com/luxmargos/place-files#readme",
   "bugs": {
-    "url": "https://gitlab.owlfamily.net/tooling/place-files/-/issues"
+    "url": "https://github.com/luxmargos/place-files/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.owlfamily.net/tooling/place-files.git"
+    "url": "git+https://github.com/luxmargos/place-files.git"
   },
   "type": "module",
   "main": "./dist/index.js",
