@@ -123,15 +123,6 @@ This example:
   - Whether glob matches preserve their paths relative to `base_dir`. Defaults to `true`.
   - Set to `false` to flatten matched files into the destination directory.
 
-## Cross-platform notes for `stamp`
-
-`stamp` is deterministic per machine: repeated runs over unchanged sources always produce the same hash on any OS. The config's effective settings are part of the hash, but formatting-only edits to the config file (comments, whitespace, key order, line endings) never change it. A few environment differences can change the hash across machines even when the sources are logically identical:
-
-- Line endings. The hash covers raw file bytes, so CRLF (e.g. Windows checkouts with `core.autocrlf=true`) and LF checkouts of the same file hash differently. Mixed-OS teams should pin line endings with `.gitattributes` (for example `* text=auto eol=lf`) to keep committed `version_file` values stable.
-- Filename casing and Unicode normalization. The hash covers relative file paths as stored on disk, so filesystems with different normalization (macOS NFD vs Windows NFC) or casing can produce different manifest lines for non-ASCII or case-variant names.
-
-Neither difference causes oscillation on a single machine, and neither prevents `stamp` from detecting real source changes; they only matter when comparing hashes generated on different operating systems.
-
 ## CLI
 
 ```bash
