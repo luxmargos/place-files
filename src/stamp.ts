@@ -11,7 +11,13 @@ export function stampVersion(options: StampVersionOptions): StampVersionResult {
   const versionFilePath = resolveFromBase(config.baseDir, config.versionFile);
   const appliedVersionFilePath = resolveFromBase(config.baseDir, config.appliedVersionFile);
 
-  const files = collectSourceFiles(config, [versionFilePath, appliedVersionFilePath]);
+  // The config participates in the version so semantic config changes (entries,
+  // backup options, behavior) also produce a new hash. It contributes a
+  // fingerprint of its normalized settings instead of its raw bytes, so cosmetic
+  // edits (comments, whitespace, key order, line endings) never trigger a
+  // re-place, and it is excluded from source collection so a config file inside
+  // a source tree is never double-counted.
+  const files = collectSourceFiles(config, [versionFilePath, appliedVersionFilePath, config.configPath]);
   const hash = hashSourceFiles(config, files, verbose);
   const previousHash = readVersion(versionFilePath);
   const changed = previousHash !== hash;
@@ -91,13 +97,15 @@ function hashSourceFiles(config: NormalizedPlaceFilesConfig, files: string[], ve
   // Build a manifest of "<content hash>  <relative posix path>" lines and sort it
   // with the default code-unit order so the result is stable across OS, filesystem,
   // locale, and scan order. Absolute paths and timestamps never enter the hash.
-  const manifest = files
-    .map((filePath) => {
+  const configLine = `${hashConfigFingerprint(config)}  ${relative(config.baseDir, config.configPath).split(sep).join('/')}`;
+  const manifest = [
+    ...files.map((filePath) => {
       const relativePath = relative(config.baseDir, filePath).split(sep).join('/');
       const contentHash = createHash('sha256').update(readFileSync(filePath)).digest('hex');
       return `${contentHash}  ${relativePath}`;
-    })
-    .sort();
+    }),
+    configLine,
+  ].sort();
 
   if (verbose) {
     for (const line of manifest) {
@@ -106,6 +114,35 @@ function hashSourceFiles(config: NormalizedPlaceFilesConfig, files: string[], ve
   }
 
   return createHash('sha256').update(manifest.join('\n')).digest('hex');
+}
+
+function hashConfigFingerprint(config: NormalizedPlaceFilesConfig): string {
+  // Fingerprint the normalized settings, not the raw YAML bytes, and express
+  // baseDir relative to the config file so the hash stays stable when the repo
+  // moves between machines or checkouts.
+  const fingerprint = {
+    baseDir: relative(dirname(config.configPath), config.baseDir).split(sep).join('/'),
+    versionFile: config.versionFile,
+    appliedVersionFile: config.appliedVersionFile,
+    entries: config.entries,
+    backup: config.backup,
+    behavior: config.behavior,
+  };
+  return createHash('sha256').update(JSON.stringify(sortKeysDeep(fingerprint))).digest('hex');
+}
+
+function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortKeysDeep);
+  }
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(([key, item]) => [key, sortKeysDeep(item)]),
+    );
+  }
+  return value;
 }
 
 function readVersion(filePath: string): string | null {

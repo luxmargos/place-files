@@ -172,7 +172,7 @@ Usage:
 
 Commands:
   init                 Generate a simple preset config and payload in the current directory.
-  stamp                Hash all configured sources into a single hash and update version_file when it differs.
+  stamp                Hash the config settings plus all configured sources into a single hash and update version_file when it differs.
 
 Options:
   -c, --config <path>  Specify the config YAML path.

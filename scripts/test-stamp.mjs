@@ -5,10 +5,12 @@ import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const testbed = resolve(root, 'examples/testbed');
+const configPath = resolve(testbed, 'place-files.yml');
 const sourceVersionPath = resolve(testbed, 'source/place-files.version');
 const mutableSourcePath = resolve(testbed, 'source/assets/banner.txt');
 const originalVersionContent = readFileSync(sourceVersionPath, 'utf8');
 const originalSourceContent = readFileSync(mutableSourcePath, 'utf8');
+const originalConfigContent = readFileSync(configPath, 'utf8');
 
 function fail(message) {
   throw new Error(`[stamp test] ${message}`);
@@ -81,6 +83,25 @@ try {
   runStamp();
   assert(readVersion() === firstHash, 'expected the hash to return to the first value (deterministic scan)');
 
+  console.log('[stamp test] cosmetic config edit does not refresh the hash');
+  writeFileSync(configPath, `${originalConfigContent.replace(/\s*$/, '\n')}# stamp test cosmetic mutation\n`, 'utf8');
+  const cosmeticOutput = runStamp();
+  assert(cosmeticOutput.includes('version file is up to date'), 'expected a comment-only config edit to be a no-op');
+  assert(readVersion() === firstHash, 'expected the hash to stay unchanged after a cosmetic config edit');
+
+  console.log('[stamp test] semantic config change produces a new hash');
+  const semanticConfigContent = originalConfigContent.replace('include_previous_version: true', 'include_previous_version: false');
+  assert(semanticConfigContent !== originalConfigContent, 'expected the semantic config mutation to apply');
+  writeFileSync(configPath, semanticConfigContent, 'utf8');
+  const configChangeOutput = runStamp();
+  assert(configChangeOutput.includes('[place-files] updated'), 'expected stamp to update after a semantic config change');
+  assert(readVersion() !== firstHash, 'expected a different hash after a semantic config change');
+
+  console.log('[stamp test] restoring the config restores the original hash');
+  writeFileSync(configPath, originalConfigContent, 'utf8');
+  runStamp();
+  assert(readVersion() === firstHash, 'expected the hash to return to the first value after restoring the config');
+
   console.log('[stamp test] dry-run reports without writing');
   writeFileSync(mutableSourcePath, `${originalSourceContent}stamp test dry-run mutation\n`, 'utf8');
   const dryRunOutput = runStamp(['--dry-run']);
@@ -91,4 +112,5 @@ try {
 } finally {
   writeFileSync(mutableSourcePath, originalSourceContent, 'utf8');
   writeFileSync(sourceVersionPath, originalVersionContent, 'utf8');
+  writeFileSync(configPath, originalConfigContent, 'utf8');
 }

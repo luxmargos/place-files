@@ -98,7 +98,7 @@ This example:
 - `version_file`
   - File containing the source bundle version.
   - Any value can be used, such as a version ID, date, or release string.
-  - Use `place-files stamp` to fill it automatically with a hash of all configured sources.
+  - Use `place-files stamp` to fill it automatically with a hash of all configured sources plus the config's effective settings, so semantic config changes (entries, backup options, behavior) also trigger a re-place while formatting-only edits do not.
 - `applied_version_file`
   - Local file that records the last applied version.
 - `entries`
@@ -125,7 +125,7 @@ This example:
 
 ## Cross-platform notes for `stamp`
 
-`stamp` is deterministic per machine: repeated runs over unchanged sources always produce the same hash on any OS. A few environment differences can change the hash across machines even when the sources are logically identical:
+`stamp` is deterministic per machine: repeated runs over unchanged sources always produce the same hash on any OS. The config's effective settings are part of the hash, but formatting-only edits to the config file (comments, whitespace, key order, line endings) never change it. A few environment differences can change the hash across machines even when the sources are logically identical:
 
 - Line endings. The hash covers raw file bytes, so CRLF (e.g. Windows checkouts with `core.autocrlf=true`) and LF checkouts of the same file hash differently. Mixed-OS teams should pin line endings with `.gitattributes` (for example `* text=auto eol=lf`) to keep committed `version_file` values stable.
 - Filename casing and Unicode normalization. The hash covers relative file paths as stored on disk, so filesystems with different normalization (macOS NFD vs Windows NFC) or casing can produce different manifest lines for non-ASCII or case-variant names.
@@ -143,7 +143,7 @@ place-files stamp [options]
 Commands:
 
 - `init`: generate a simple preset config and payload in the current directory.
-- `stamp`: scan every configured source (files, directories, and glob matches), hash them into a single deterministic hash, and update `version_file` when the content differs. The hash only depends on relative file paths and file contents, so repeated runs over unchanged sources are idempotent. Supports `--dry-run` and `--verbose`.
+- `stamp`: scan every configured source (files, directories, and glob matches), hash them together with the config's effective settings into a single deterministic hash, and update `version_file` when the content differs. Semantic config changes (entries, backup options, behavior) refresh the version and make the next run re-apply; formatting-only config edits (comments, whitespace, key order, line endings) do not. The hash only depends on relative file paths, file contents, and normalized config settings, so repeated runs over unchanged inputs are idempotent. Supports `--dry-run` and `--verbose`.
 
 Options:
 
